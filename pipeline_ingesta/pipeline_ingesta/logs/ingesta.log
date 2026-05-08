@@ -1,0 +1,3 @@
+2026-05-08 15:48:40,108 - INFO - Iniciando ingesta: datos_prueba.csv
+2026-05-08 15:48:40,109 - INFO - [OK] Archivo copiado a: data/raw\datos_prueba.csv
+2026-05-08 15:48:40,109 - INFO - Ingesta completada.
