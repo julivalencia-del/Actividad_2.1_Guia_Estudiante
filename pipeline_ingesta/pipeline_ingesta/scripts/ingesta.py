@@ -1,37 +1,21 @@
-import shutil
-import os
-import logging
+import requests, json, os
 from datetime import datetime
 
-# -- 1. Configurar logging ----------------------------------------
-os.makedirs('logs', exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("logs/ingesta.log"),   # guarda en archivo
-        logging.StreamHandler()                     # muestra en consola
-    ]
-)
-
-# -- 2. Funcion de ingesta ----------------------------------------
-def ingestar(origen: str, destino_carpeta: str) -> None:
-    """Copia un archivo desde origen hacia destino_carpeta."""
+def ingestar_desde_api(url: str, destino_carpeta: str) -> None:
     os.makedirs(destino_carpeta, exist_ok=True)
-    nombre  = os.path.basename(origen)
-    destino = os.path.join(destino_carpeta, nombre)
+    print(f"Consultando API: {url}")
+    respuesta = requests.get(url, timeout=10)
 
-    logging.info(f"Iniciando ingesta: {origen}")
+    if respuesta.status_code == 200:
+        datos     = respuesta.json()
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        archivo   = os.path.join(destino_carpeta, f'datos_{timestamp}.json')
+        with open(archivo, 'w', encoding='utf-8') as f:
+            json.dump(datos, f, indent=2, ensure_ascii=False)
+        print(f"[OK] Guardado en: {archivo}")
+    else:
+        print(f"[ERROR] Codigo: {respuesta.status_code}")
 
-    try:
-        shutil.copy(origen, destino)
-        logging.info(f"[OK] Archivo copiado a: {destino}")
-    except FileNotFoundError:
-        logging.error(f"[ERROR] No se encontro el archivo: {origen}")
-        raise
-
-# -- 3. Ejecutar --------------------------------------------------
 if __name__ == "__main__":
-    ingestar("datos_prueba.csv", "data/raw")
-    logging.info("Ingesta completada.")
+    url = 'https://jsonplaceholder.typicode.com/users'
+    ingestar_desde_api(url, "data/raw")
